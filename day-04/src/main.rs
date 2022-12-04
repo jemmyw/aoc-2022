@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -15,27 +14,25 @@ where
 
 fn main1() {
     if let Ok(lines) = read_lines("input.txt") {
-        let items: u64 = lines
+        let items = lines
             .into_iter()
             .map(|line| {
-                match line
-                    .unwrap()
-                    .split(',')
-                    .map(|side| {
-                        side.split('-')
-                            .map(|s| s.parse::<u32>().unwrap())
-                            .collect_tuple::<(u32, u32)>()
-                            .unwrap()
-                    })
-                    .collect_tuple::<(_, _)>()
-                    .map(|(r1, r2)| {
-                        (r1.0 <= r2.0 && r1.1 >= r2.1) || (r2.0 <= r1.0 && r2.1 >= r1.1)
-                    }) {
-                    Some(true) => 1,
-                    _ => 0,
-                }
+                line.ok().and_then(|line| {
+                    line.split(',')
+                        .map(|side| {
+                            side.split('-')
+                                .map(|s| s.parse::<u32>().unwrap())
+                                .collect_tuple::<(u32, u32)>()
+                        })
+                        .collect_tuple::<(_, _)>()
+                        .and_then(|x| Option::zip(x.0, x.1))
+                        .map(|(r1, r2)| {
+                            (r1.0 <= r2.0 && r1.1 >= r2.1) || (r2.0 <= r1.0 && r2.1 >= r1.1)
+                        })
+                        .and_then(|x| x.then(|| true))
+                })
             })
-            .sum();
+            .count();
 
         println!("{:?}", items);
     }
@@ -43,26 +40,23 @@ fn main1() {
 
 fn main2() {
     if let Ok(lines) = read_lines("input.txt") {
-        let items: u64 = lines
+        let items = lines
             .into_iter()
-            .map(|line| {
-                match line
-                    .unwrap()
-                    .split(',')
-                    .map(|side| {
-                        side.split('-')
-                            .map(|s| s.parse::<u32>().unwrap())
-                            .collect_tuple::<(u32, u32)>()
-                            .unwrap()
-                    })
-                    .collect_tuple::<(_, _)>()
-                    .map(|(r1, r2)| r1.0 <= r2.1 && r2.0 <= r1.1)
-                {
-                    Some(true) => 1,
-                    _ => 0,
-                }
+            .filter_map(|line| {
+                line.ok().and_then(|line| {
+                    line.split(',')
+                        .map(|side| {
+                            side.split('-')
+                                .map(|s| s.parse::<u32>().unwrap())
+                                .collect_tuple::<(u32, u32)>()
+                        })
+                        .collect_tuple::<(_, _)>()
+                        .and_then(|x| Option::zip(x.0, x.1))
+                        .map(|(r1, r2)| r1.0 <= r2.1 && r2.0 <= r1.1)
+                        .and_then(|x| x.then(|| true))
+                })
             })
-            .sum();
+            .count();
 
         println!("{:?}", items);
     }
