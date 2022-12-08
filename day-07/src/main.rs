@@ -170,16 +170,9 @@ fn part_2() -> () {
     sizes.sort_unstable();
     let size = sizes.into_iter().find(|&&s| s >= to_delete);
     println!("{:?}", size);
-
-    // Return a vector of the names of the containers that have a size of at most 100,000
-    // container_sizes
-    //     .into_iter()
-    //     .filter(|(_, size)| *size <= 100_000)
-    //     .map(|(_, size)| size)
-    //     .sum()
 }
 
 fn main() {
-    // println!("{:?}", part_1());
+    println!("{:?}", part_1());
     part_2();
 }
