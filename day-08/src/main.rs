@@ -73,44 +73,28 @@ fn part_1(grid: &Grid) {
 }
 
 fn scenic_score(grid: &Grid, c: usize, r: usize) -> u32 {
-    let mut d: i32 = 0;
-    let mut i: Vec<(bool, u32, i32, i32)> = vec![
-        (true, 0, -1, 0),
-        (true, 0, 0, -1),
-        (true, 0, 1, 0),
-        (true, 0, 0, 1),
-    ];
+    let directions = [(0, -1), (0, 1), (1, 0), (-1, 0)];
+    let mut scenic_score = 1;
 
-    loop {
-        d += 1;
-        let all = &i[..];
+    for (dx, dy) in directions.iter() {
+        let mut count = 0;
+        for d in 1.. {
+            let x = c as i32 + d * dx;
+            let y = r as i32 + d * dy;
 
-        if all.iter().all(|s| !s.0) {
-            break;
-        }
-
-        for index in 0..i.len() {
-            let s = i[index];
-            if !s.0 {
-                continue;
+            if x < 0 || x >= grid[0].len() as i32 || y < 0 || y >= grid.len() as i32 {
+                break;
             }
+            count += 1;
 
-            let pn = (c as i32 + d * s.2, r as i32 + d * s.3);
-
-            if !(0..grid.len()).contains(&(pn.1 as usize))
-                || !(0..grid[0].len()).contains(&(pn.0 as usize))
-            {
-                i[index].0 = false;
-            } else {
-                if grid[pn.1 as usize][pn.0 as usize] >= grid[r][c] {
-                    i[index].0 = false;
-                }
-                i[index].1 += 1;
+            if grid[y as usize][x as usize] >= grid[r][c] {
+                break;
             }
         }
+        scenic_score *= count;
     }
 
-    i.iter().map(|i| i.1).product()
+    scenic_score
 }
 
 fn part_2(grid: &Grid) {
