@@ -1,15 +1,15 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 use itertools::Itertools;
 use regex::Regex;
 
-type Round = Vec<(i32, usize)>;
+type Round = Vec<(u128, usize)>;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 enum Operation {
-    WithValue { operand: String, value: i32 },
+    WithValue { operand: String, value: u128 },
     OnSelf { operand: String },
 }
 
@@ -31,7 +31,7 @@ impl Operation {
         })
     }
 
-    fn worry(&self, item: &i32) -> Result<i32, &'static str> {
+    fn worry(&self, item: &u128) -> Result<u128, &'static str> {
         match self {
             Operation::OnSelf { operand } => Operation::WithValue {
                 operand: operand.to_string(),
@@ -50,9 +50,9 @@ impl Operation {
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
 struct Monkey {
     id: usize,
-    items: Vec<i32>,
+    items: Vec<u128>,
     operation: Operation,
-    test: i32,
+    test: u128,
     if_true: usize,
     if_false: usize,
 }
@@ -73,10 +73,10 @@ impl Monkey {
         // Extract the starting items
         let starting_items_str = lines[1].split(":").skip(1).next()?;
 
-        let starting_items: Vec<i32> = starting_items_str
+        let starting_items: Vec<u128> = starting_items_str
             .split(",")
             .map(|s| s.trim().parse())
-            .collect::<Result<Vec<i32>, _>>()
+            .collect::<Result<Vec<u128>, _>>()
             .ok()?;
 
         // Extract the operation
@@ -107,7 +107,8 @@ impl Monkey {
         self.items
             .iter()
             .map(|item| {
-                let worry_level = self.operation.worry(item).unwrap() / 3;
+                let lcm = 9699690;
+                let worry_level = self.operation.worry(item).unwrap() % lcm; // / 3;
 
                 if worry_level % self.test == 0 {
                     (worry_level, self.if_true)
@@ -126,7 +127,7 @@ fn main() {
 
     // Create a HashSet to store the monkeys
     let mut monkeys: Vec<Monkey> = vec![];
-    let mut inspections: HashMap<usize, u32> = HashMap::new();
+    let mut inspections: HashMap<usize, u128> = HashMap::new();
 
     reader
         .lines()
@@ -141,11 +142,11 @@ fn main() {
             monkeys.push(monkey);
         });
 
-    for _ in 1..=20 {
+    for _ in 1..=10000 {
         for id in 0..monkeys.len() {
             if let Some(m) = monkeys.get_mut(id) {
                 if let Some(x) = inspections.get_mut(&m.id) {
-                    *x += m.items.len() as u32;
+                    *x += m.items.len() as u128;
                 }
 
                 let round = m.round();
@@ -163,6 +164,6 @@ fn main() {
         .sorted_unstable()
         .rev()
         .take(2)
-        .product::<u32>();
+        .product::<u128>();
     println!("{:?}", result);
 }
