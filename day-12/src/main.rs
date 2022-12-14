@@ -16,6 +16,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         grid.push(row);
     }
 
+    part_1(&grid);
+    part_2(&grid);
+
+    Ok(())
+}
+
+fn part_1(grid: &Vec<Vec<char>>) {
     let mut start = (0, 0);
     let mut goal = (0, 0);
 
@@ -30,13 +37,47 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    let result = shortest_route(&grid, &start, &goal);
+
+    println!("{:?}", result);
+}
+
+fn part_2(grid: &Vec<Vec<char>>) {
+    let mut goal = (0, 0);
+    for y in 0..grid.len() {
+        for x in 0..grid[0].len() {
+            if grid[y][x] == 'E' {
+                goal = (x, y);
+            }
+        }
+    }
+
+    let min = (0..grid.len())
+        .flat_map(|y| (0..grid[0].len()).map(move |x| (x, y)))
+        .filter(|(x, y)| grid[*y][*x] == 'a')
+        .filter_map(|(x, y)| shortest_route(&grid, &(x, y), &goal))
+        .min();
+
+    println!("{:?}", min);
+}
+
+fn shortest_route(
+    grid: &Vec<Vec<char>>,
+    start: &(usize, usize),
+    &goal: &(usize, usize),
+) -> Option<usize> {
     let directions: Vec<(i32, i32)> = vec![(1, 0), (-1, 0), (0, 1), (0, -1)];
 
     let result = dijkstra(
-        &start,
+        start,
         |&(x, y)| {
             let mut successors = vec![];
-            let c = (grid[y][x] as i32) + 1;
+            let c: i32;
+            if grid[y][x] == 'S' {
+                c = 'b' as i32
+            } else {
+                c = (grid[y][x] as i32) + 1;
+            }
 
             for (xa, ya) in &directions {
                 let xb = x as i32 + *xa;
@@ -44,14 +85,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 if yb >= 0 && yb < grid.len() as i32 && xb >= 0 && xb < grid[0].len() as i32 {
                     let f = grid[yb as usize][xb as usize];
-                    let mut fc: i32 = 0;
-                    if f == 'E' {
-                        fc = 'z' as i32
-                    } else {
-                        fc = f as i32;
+                    let fc;
+                    match f {
+                        'E' => fc = 'z' as i32,
+                        _ => fc = f as i32,
                     }
 
-                    if grid[y][x] == 'S' || fc <= c {
+                    if fc <= c {
                         successors.push(((xb as usize, yb as usize), 2))
                     }
                 }
@@ -62,7 +102,5 @@ fn main() -> Result<(), Box<dyn Error>> {
         |&p| p == goal,
     );
 
-    println!("{:?}", result.map(|r| r.0.len() - 1));
-
-    Ok(())
+    return result.map(|r| r.0.len() - 1);
 }
